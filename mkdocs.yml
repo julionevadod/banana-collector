@@ -1,0 +1,52 @@
+site_name: banana-collector-rl
+repo_url: https://github.com/julionevadod/banana-collector-rl
+site_url: https://julionevadod.github.io/banana-collector-rl
+site_description: Python project that trains an agent to solve banana collector problem
+site_author: Julio Nevado
+edit_uri: edit/main/docs/
+repo_name: julionevadod/banana-collector-rl
+copyright: Maintained by <a href="https://julionevadod.com">julionevadod</a>.
+
+nav:
+  - Home: index.md
+  - Modules: modules.md
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [banana_collector_rl]
+theme:
+  name: material
+  feature:
+    tabs: true
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/julionevadod/banana-collector-rl
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/banana-collector-rl
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
