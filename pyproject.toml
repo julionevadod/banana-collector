@@ -17,6 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = [
+    "unityagents",
+]
 
 [project.urls]
 Homepage = "https://julionevadod.github.io/banana-collector-rl/"
@@ -35,6 +38,21 @@ dev = [
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
     "mkdocstrings[python]>=0.26.1",
+    "wheel",
+    "Pillow>=4.2.1",
+    "matplotlib",
+    "numpy>=1.11.0",
+    "jupyter",
+    "pytest>=3.2.2",
+    "docopt",
+    "pyyaml",
+    "protobuf",
+    "grpcio",
+    "torch>=0.4.0",
+    "pandas",
+    "scipy",
+    "ipykernel",
+
 ]
 
 [build-system]
@@ -115,3 +133,5 @@ skip_empty = true
 branch = true
 source = ["banana_collector_rl"]
 
+[tool.uv.sources]
+unityagents = { path = "python" }

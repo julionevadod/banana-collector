@@ -12,7 +12,7 @@ class ExperienceReplayBuffer:
         :type experience: _type_
         """
         self.buffer.append(experience)
-    
+
     def sample(self, batch_size: int):
         """_summary_
 
