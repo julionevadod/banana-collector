@@ -20,7 +20,7 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 class Agent:
     """_summary_
     """
-    def __init__(self, gamma: float = 0.99, lr: float = 5e-4, eps_decay: float = 0.997, eps_end: float = 0.1):
+    def __init__(self, gamma: float = 0.99, lr: float = 5e-4, eps_decay: float = 0.997, eps_end: float = 0.02):
         self.gamma = gamma
         self.eps = 1.0
         self.eps_decay = eps_decay
@@ -58,7 +58,7 @@ class Agent:
                 local_network_output = self.local_network(
                     state
                 )
-            action = local_network_output.detach().max().item() #TODO: Detach needed?
+            action = local_network_output.detach().argmax().item() #TODO: Detach needed?
         else:
             action = np.random.randint(ACTION_SIZE)
         return action
@@ -83,17 +83,17 @@ class Agent:
 
         # Local network pass
         local_network_output = self.local_network(states)
-        print(actions)
         local_expected_reward = local_network_output.gather(
             1, actions
         ) # TODO: why gather and not max?
 
         # Target network pass
-        target_network_output = self.target_network(next_states).detach().max(
-            dim = 1
-        ).values.unsqueeze(1)*(1-dones) #TODO: why 1-dones
+        with torch.no_grad():
+            target_network_output = self.target_network(next_states)
 
-        target_expected_reward = rewards + self.gamma*target_network_output
+        target_expected_reward = rewards + self.gamma*target_network_output.detach().max(
+                dim = 1
+            ).values.unsqueeze(1)*(1-dones) #TODO: why 1-dones
 
         # Compute loss
         loss = self.loss(local_expected_reward,target_expected_reward)
@@ -102,8 +102,8 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        # self.soft_update(self.local_network,self.target_network,1e-3)
-        self.target_network = copy.deepcopy(self.local_network)
+        self.soft_update(self.local_network,self.target_network,1e-3)
+        # self.target_network = copy.deepcopy(self.local_network)
         self.eps = max(self.eps*self.eps_decay,self.eps_end)
         self.local_network.eval()
 
@@ -114,7 +114,7 @@ class Agent:
         scores_window = collections.deque(maxlen=WINDOW_SIZE)
         for i in range(n_episodes):
             env_info = self.env.reset(train_mode=True)[BRAIN_NAME]
-            state = env_info.vector_observations[0],
+            state = env_info.vector_observations[0]
             score = 0
             for j in range(MAX_STEPS):
                 action = self._select_action(state)
@@ -123,17 +123,17 @@ class Agent:
                 reward = env_info.rewards[0]
                 done = env_info.local_done[0]
                 score += reward
-                state = next_state
                 self.replay_buffer.insert(
                     [state, action, next_state, reward, done]
                 )
-                if done:
-                    break
                 if (j%UPDATE_EVERY==0) & (len(self.replay_buffer)>=batch_size):
                     experiences = self.replay_buffer.sample(
                         batch_size
                     )
                     self._update(experiences)
+                if done:
+                    break
+                state = next_state
             scores.append(score)
             scores_window.append(score)
             print("\rEPISODE {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_episodes,float(np.mean(scores_window)),score), end="")
@@ -148,7 +148,7 @@ class Agent:
         pass
 
 
-    def soft_update(self, local_model, target_model, tau):
+    def soft_update(self, local_model, target_model, tau): # TODO: this is necessary. Deep copy does not work well, agent does not lern
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
