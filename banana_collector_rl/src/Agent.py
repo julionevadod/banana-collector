@@ -1,4 +1,3 @@
-import copy
 import collections
 import numpy as np
 import torch
@@ -63,10 +62,18 @@ class Agent:
             action = np.random.randint(ACTION_SIZE)
         return action
 
-    def _act(self): #step would be a better name
-        """From a state A, select an action to switch to state B and get a reward
+    def _soft_update(self, local_model, target_model, tau): # TODO: this is necessary. Deep copy does not work well, agent does not lern
+        """Soft update model parameters.
+        θ_target = τ*θ_local + (1 - τ)*θ_target
+
+        Params
+        ======
+            local_model (PyTorch model): weights will be copied from
+            target_model (PyTorch model): weights will be copied to
+            tau (float): interpolation parameter
         """
-        pass
+        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
+            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
     def _update(self, experiences):
         """Update policy from a batch of experiences
@@ -102,7 +109,7 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        self.soft_update(self.local_network,self.target_network,1e-3)
+        self._soft_update(self.local_network,self.target_network,1e-3)
         # self.target_network = copy.deepcopy(self.local_network)
         self.eps = max(self.eps*self.eps_decay,self.eps_end)
         self.local_network.eval()
@@ -141,22 +148,7 @@ class Agent:
                 print("\rEPISODE {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_episodes,float(np.mean(scores_window)),score))
         return scores
 
-
-    def play(self):
-        """Play an episode in the environment with the actual policy
-        """
-        pass
-
-
-    def soft_update(self, local_model, target_model, tau): # TODO: this is necessary. Deep copy does not work well, agent does not lern
-        """Soft update model parameters.
-        θ_target = τ*θ_local + (1 - τ)*θ_target
-
-        Params
-        ======
-            local_model (PyTorch model): weights will be copied from
-            target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter
-        """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
+    def save(self, save_dir):
+        torch.save(self.local_network.state_dict(), "{}/local_network".format(save_dir))
+        torch.save(self.target_network.state_dict(), "{}/target_network".format(save_dir))
+        torch.save(self.optimizer.state_dict(), "{}/optimizer".format(save_dir))
