@@ -174,4 +174,4 @@ cython_debug/
 notebooks
 uv.lock
 Banana.app
-checkpoints/*
+checkpoints/

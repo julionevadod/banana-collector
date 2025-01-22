@@ -152,3 +152,29 @@ class Agent:
         torch.save(self.local_network.state_dict(), "{}/local_network".format(save_dir))
         torch.save(self.target_network.state_dict(), "{}/target_network".format(save_dir))
         torch.save(self.optimizer.state_dict(), "{}/optimizer".format(save_dir))
+
+    def load(self, save_dir):
+        self.local_network.load_state_dict(
+            torch.load("{}/local_network".format(save_dir),weights_only=True)
+        )
+        self.target_network.load_state_dict(
+            torch.load("{}/target_network".format(save_dir),weights_only=True)
+        )
+        self.optimizer.load_state_dict(
+           torch.load("{}/optimizer".format(save_dir),weights_only=True)
+        )
+
+    def play(self):
+        env_info = self.env.reset(train_mode=False)[BRAIN_NAME]
+        state = env_info.vector_observations[0]
+        score = 0
+        done = False
+        while done == False:
+            action = self._select_action(state)
+            env_info = self.env.step(action)[BRAIN_NAME]
+            next_state = env_info.vector_observations[0]
+            reward = env_info.rewards[0]
+            done = env_info.local_done[0]
+            score += reward
+            state = next_state
+        return score
