@@ -40,6 +40,8 @@ uv sync
 source ../.venv/bin/activate
 ```
 
+5. Place Banana.app from course resources inside **banana_collector_rl**
+
 ## Instructions
 Once environment has been activated, training can be run from command line:
 
