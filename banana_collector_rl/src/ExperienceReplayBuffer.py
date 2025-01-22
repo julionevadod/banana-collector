@@ -2,8 +2,11 @@ from collections import deque
 import numpy as np
 
 class ExperienceReplayBuffer:
-    def __init__(size: int):
+    def __init__(self, size: int):
         self.buffer = deque(maxlen=size)
+
+    def __len__(self):
+        return len(self.buffer)
 
     def insert(self, experience):
         """Add a new experience to the buffer
