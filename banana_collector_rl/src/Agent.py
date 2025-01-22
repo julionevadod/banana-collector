@@ -74,12 +74,13 @@ class Agent:
                 local_network_output = self.local_network(
                     state
                 )
-            action = local_network_output.detach().argmax().item() #TODO: Detach needed?
+            # Detach no needed since we are inside no_grad context manager
+            action = local_network_output.argmax().item()
         else:
             action = np.random.randint(ACTION_SIZE)
         return action
 
-    def _soft_update(self, local_model: torch.nn.Module, target_model: torch.nn.Module, tau:float): # TODO: this is necessary. Deep copy does not work well, agent does not lern
+    def _soft_update(self, local_model: torch.nn.Module, target_model: torch.nn.Module, tau:float):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
@@ -101,7 +102,7 @@ class Agent:
         """
         self.local_network.train()
 
-        # Split experiences #TODO: manage better tensors
+        # Split experiences
         states, actions, next_states, rewards, dones = zip(*experiences)
         states = torch.tensor(np.array(states),dtype=torch.float64).to(device)
         actions = torch.tensor(np.array(actions),dtype=torch.int64).to(device).unsqueeze(1)
@@ -113,7 +114,7 @@ class Agent:
         local_network_output = self.local_network(states)
         local_expected_reward = local_network_output.gather(
             1, actions
-        ) # TODO: why gather and not max?
+        )
 
         # Target network pass
         with torch.no_grad():
@@ -121,7 +122,7 @@ class Agent:
 
         target_expected_reward = rewards + self.gamma*target_network_output.detach().max(
                 dim = 1
-            ).values.unsqueeze(1)*(1-dones) #TODO: why 1-dones
+            ).values.unsqueeze(1)*(1-dones)
 
         # Compute loss
         loss = self.loss(local_expected_reward,target_expected_reward)
@@ -171,7 +172,7 @@ class Agent:
                 state = next_state
             scores.append(score)
             scores_window.append(score)
-            print("\ITERATION {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_iterations,float(np.mean(scores_window)),score), end="")
+            print("\rITERATION {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_iterations,float(np.mean(scores_window)),score), end="")
             if i%100 == 0:
                 print("\rITERATION {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_iterations,float(np.mean(scores_window)),score))
         return scores

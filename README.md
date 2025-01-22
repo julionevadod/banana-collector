@@ -1,69 +1,74 @@
 # banana-collector-rl
 
-[![Release](https://img.shields.io/github/v/release/julionevadod/banana-collector-rl)](https://img.shields.io/github/v/release/julionevadod/banana-collector-rl)
-[![Build status](https://img.shields.io/github/actions/workflow/status/julionevadod/banana-collector-rl/main.yml?branch=main)](https://github.com/julionevadod/banana-collector-rl/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/julionevadod/banana-collector-rl/branch/main/graph/badge.svg)](https://codecov.io/gh/julionevadod/banana-collector-rl)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/julionevadod/banana-collector-rl)](https://img.shields.io/github/commit-activity/m/julionevadod/banana-collector-rl)
-[![License](https://img.shields.io/github/license/julionevadod/banana-collector-rl)](https://img.shields.io/github/license/julionevadod/banana-collector-rl)
+Current projects trains a DQN to solve Banana collector unity environment.
 
-Python project that trains an agent to solve banana collector problem
+## Project Details
+### The Environment
+States are defined in a 37-dimensional space. Action space size is 4:
+- FORWARD (0)
+- BACK (1)
+- LEFT (2)
+- RIGHT (3)
 
-- **Github repository**: <https://github.com/julionevadod/banana-collector-rl/>
-- **Documentation** <https://julionevadod.github.io/banana-collector-rl/>
+### The task
+The task is episodic, meaning that it has a defined end state (marked by done flag coming from environment). The task is considered to be solved when the agent achieves an average reward of +13 over 100 consecutive episodes.
 
-## Getting started with your project
+## Getting started
+. Fork the `banana-collector-rl` repo on GitHub.
 
-### 1. Create a New Repository
-
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
-
-```bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:julionevadod/banana-collector-rl.git
-git push -u origin main
-```
-
-### 2. Set Up Your Development Environment
-
-Then, install the environment and the pre-commit hooks with
+1. Clone your fork locally:
 
 ```bash
-make install
+cd <directory_in_which_repo_should_be_created>
+git clone git@github.com:YOUR_NAME/banana-collector-rl.git
 ```
 
-This will also generate your `uv.lock` file
-
-### 3. Run the pre-commit hooks
-
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
+2. Now we need to install the environment. Navigate into the directory
 
 ```bash
-uv run pre-commit run -a
+cd banana-collector-rl
 ```
 
-### 4. Commit the changes
-
-Lastly, commit the changes made by the two steps above to your repository.
+3. Then, install the environment with:
 
 ```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
+uv sync
 ```
 
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
+4. Activate the environment (from banana-collector-rl folder):
+```bash
+source ../.venv/bin/activate
+```
 
-To finalize the set-up for publishing to PyPI, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/codecov/).
+## Instructions
+Once environment has been activated, training can be run from command line:
 
-## Releasing a new version
+```bash
+python -m train
+```
 
+Running the module as it is will run the training loop with default parameters. These default parameters produce an agent that solves the environment. However, agent hyperparameters can be configured by means of runtime arguments:
 
+#### `-i`, `--iterations`
+- **Description**: Number of environment steps to train for.
+- **Default**: Value from `config["DEFAULT"]["ITERATIONS"]`.
 
----
+#### `-b`, `--batch_size`
+- **Description**: Batch size for learning steps.
+- **Default**: Value from `config["DEFAULT"]["BATCH_SIZE"]`.
 
-Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+#### `-g`, `--gamma`
+- **Description**: Discount rate used in reinforcement learning.
+- **Default**: Value from `config["DEFAULT"]["GAMMA"]`.
+
+#### `-l`, `--learning_rate`
+- **Description**: Learning rate for the optimizer.
+- **Default**: Value from `config["DEFAULT"]["LEARNING_RATE"]`.
+
+#### `-d`, `--eps_decay`
+- **Description**: Decay of epsilon after each iteration.
+- **Default**: Value from `config["DEFAULT"]["EPSILON_DECAY"]`.
+
+#### `-e`, `--eps_end`
+- **Description**: Minimum value of epsilon allowed.
+- **Default**: Value from `config["DEFAULT"]["EPSILON_END"]`.
