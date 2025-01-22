@@ -130,7 +130,7 @@ if __name__ == "__main__":
     )
 
     scores = agent.learn(
-        n_episodes=iterations,
+        n_iterations=iterations,
         batch_size=batch_size
     )
 

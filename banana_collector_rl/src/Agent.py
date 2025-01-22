@@ -1,4 +1,5 @@
 import collections
+import typing
 import numpy as np
 import torch
 from unityagents import UnityEnvironment
@@ -17,9 +18,20 @@ ENV_FILE="Banana.app"
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 class Agent:
-    """_summary_
+    """Agent class to solve BananaCollector unity environment
     """
     def __init__(self, gamma: float = 0.99, lr: float = 5e-4, eps_decay: float = 0.997, eps_end: float = 0.02):
+        """Constructs an Agent instance
+
+        :param gamma: Discount used for future rewards, defaults to 0.99
+        :type gamma: float, optional
+        :param lr: Learning rate for optimizer of local neural network, defaults to 5e-4
+        :type lr: float, optional
+        :param eps_decay: Epsilon decay each iteration, defaults to 0.997
+        :type eps_decay: float, optional
+        :param eps_end: Minimum epsilon allowed, defaults to 0.02
+        :type eps_end: float, optional
+        """
         self.gamma = gamma
         self.eps = 1.0
         self.eps_decay = eps_decay
@@ -43,8 +55,13 @@ class Agent:
         ).eval()
         self.optimizer = torch.optim.Adam(self.local_network.parameters(), lr = lr)
 
-    def _select_action(self, state):
+    def _select_action(self, state: typing.Union[torch.Tensor,np.array]) -> int:
         """Given input state, select an action based on current policy
+
+        :param state: Banana environment state
+        :type state: typing.Union[torch.Tensor,np.array]
+        :return: Action the agent takes using an epsilon-greedy policy
+        :rtype: int
         """
         if not isinstance(state, torch.Tensor):
             state = torch.tensor(
@@ -62,21 +79,25 @@ class Agent:
             action = np.random.randint(ACTION_SIZE)
         return action
 
-    def _soft_update(self, local_model, target_model, tau): # TODO: this is necessary. Deep copy does not work well, agent does not lern
+    def _soft_update(self, local_model: torch.nn.Module, target_model: torch.nn.Module, tau:float): # TODO: this is necessary. Deep copy does not work well, agent does not lern
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
-        Params
-        ======
-            local_model (PyTorch model): weights will be copied from
-            target_model (PyTorch model): weights will be copied to
-            tau (float): interpolation parameter
+        :param local_model: Model learning the policy
+        :type local_model: torch.nn.Module
+        :param target_model: Model used as fixed target to be updated
+        :type target_model: torch.nn.Module
+        :param tau: Interpolation parameter
+        :type tau: float
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
-    def _update(self, experiences):
+    def _update(self, experiences: list[tuple[list[float],int,list[float],float,int]]):
         """Update policy from a batch of experiences
+
+        :param experiences: Experiences sampled from buffer used to update local network
+        :type experiences: list[tuple[list[float],int,list[float],float,int]]
         """
         self.local_network.train()
 
@@ -114,12 +135,19 @@ class Agent:
         self.eps = max(self.eps*self.eps_decay,self.eps_end)
         self.local_network.eval()
 
-    def learn(self, n_episodes: int, batch_size: int = 4):
+    def learn(self, n_iterations: int, batch_size: int = 4) -> list[float]:
         """Make agent learn how to interact with its given environment
+
+        :param n_iterations: Number of iterations to learn for
+        :type n_iterations: int
+        :param batch_size: Batch size used for sampling from experience replay buffer, defaults to 4
+        :type batch_size: int, optional
+        :return: Scores for each episode played
+        :rtype: list[float]
         """
         scores = []
         scores_window = collections.deque(maxlen=WINDOW_SIZE)
-        for i in range(n_episodes):
+        for i in range(n_iterations):
             env_info = self.env.reset(train_mode=True)[BRAIN_NAME]
             state = env_info.vector_observations[0]
             score = 0
@@ -143,12 +171,17 @@ class Agent:
                 state = next_state
             scores.append(score)
             scores_window.append(score)
-            print("\rEPISODE {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_episodes,float(np.mean(scores_window)),score), end="")
+            print("\ITERATION {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_iterations,float(np.mean(scores_window)),score), end="")
             if i%100 == 0:
-                print("\rEPISODE {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_episodes,float(np.mean(scores_window)),score))
+                print("\rITERATION {}/{}: Average Reward Last 100: {:.2f} \t Last Episode: {:.2f}".format(i,n_iterations,float(np.mean(scores_window)),score))
         return scores
 
-    def save(self, save_dir):
+    def save(self, save_dir: str):
+        """Save local, target and optimizers
+
+        :param save_dir: Directory used to save agent
+        :type save_dir: str
+        """
         torch.save(self.local_network.state_dict(), "{}/local_network".format(save_dir))
         torch.save(self.target_network.state_dict(), "{}/target_network".format(save_dir))
         torch.save(self.optimizer.state_dict(), "{}/optimizer".format(save_dir))
@@ -165,6 +198,8 @@ class Agent:
         )
 
     def play(self):
+        """Play an episode with current policy
+        """
         env_info = self.env.reset(train_mode=False)[BRAIN_NAME]
         state = env_info.vector_observations[0]
         score = 0
