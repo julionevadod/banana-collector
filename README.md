@@ -35,18 +35,13 @@ cd banana-collector-rl
 uv sync
 ```
 
-4. Activate the environment (from banana-collector-rl folder):
-```bash
-source ../.venv/bin/activate
-```
-
-5. Place Banana.app from course resources inside **banana_collector_rl**
+4. Place Banana.app from course resources inside **banana_collector_rl**
 
 ## Instructions
 Once environment has been activated, training can be run from command line:
 
 ```bash
-python -m train
+uv run train.py
 ```
 
 Running the module as it is will run the training loop with default parameters. These default parameters produce an agent that solves the environment. However, agent hyperparameters can be configured by means of runtime arguments:
