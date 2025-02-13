@@ -13,7 +13,7 @@ if __name__ == "__main__":
         prog="Banana Collector Game: DQN solution",
         description=""""
         Current program aims to solve Banana Collector Unity environment
-        using policy based methods in the field of reinforcement learning
+        using value based methods in the field of reinforcement learning
         """
     )
 
