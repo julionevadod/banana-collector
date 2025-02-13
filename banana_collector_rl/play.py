@@ -12,8 +12,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="Banana Collector Game: DQN solution",
         description=""""
-        Current program aims to solve Banana Collector Unity environment
-        using policy based methods in the field of reinforcement learning
+        Current program aims to play an episode in Banana Collector Unity environment
+        using an agent trained using value based methods in the field of reinforcement learning
         """
     )
 
